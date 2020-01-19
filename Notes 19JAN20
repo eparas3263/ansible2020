@@ -1,0 +1,8 @@
+# -Install Ansible- #
+  1. yum epel-release:       # -configure EPEL repository in system
+  2. sudo yum install ansible
+  3. sudo yum install git
+  or
+  4. brew install ansible
+  ---
+  
