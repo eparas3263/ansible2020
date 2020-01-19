@@ -1,0 +1,24 @@
+## Create a single VM##
+# Author: Dwayne Salmon
+
+New-VM -Name 999HDSVR2 -VMHost 999vmwesx01.fitness.com -Datastore 999-v56-dt1-prd-vmos01 -Template "W2K16_ Standard"
+#####EXAMPLE ABOVE######
+#Name - this is the name if the server
+# -VMHost - this is the name or IP address of the ESXI host you will deploy the virtual machine to.
+# - Datastore - Name of the datastore
+# - Template - define the name of the template that is listed in vCenter
+
+#Step 1
+Connect-VIServer #enter IP address of the vcenter here#
+#Step 2
+# log in with the administrator account for vCenter
+New-VM -Name dub60-ignite-1 -VMHost 10.204.67.10 -Datastore NFS -Template "Windows Server 2016 Template"
+New-VM -Name dub60-ignite-2 -VMHost 10.204.67.9 -Datastore NFS -Template "Windows Server 2016 Template"
+New-VM -Name dub60-ignite-3 -VMHost 10.204.67.10 -Datastore NFS -Template "Windows Server 2016 Template"
+New-VM -Name dub60-distech-1 -VMHost 10.204.67.10 -Datastore NFS -Template "Windows Server 2016 Template"
+New-VM -Name dub60-distech-2 -VMHost 10.204.67.9 -Datastore NFS -Template "Windows Server 2016 Template"
+
+
+# Once you have deployed the vms balance the vms between the hosts equally.
+#download Powercli here : https://www.powershellgallery.com/packages/VMware.PowerCLI/11.5.0.14912921 and |
+# MAC: https://blogs.vmware.com/PowerCLI/2018/03/installing-powercli-10-0-0-macos.html

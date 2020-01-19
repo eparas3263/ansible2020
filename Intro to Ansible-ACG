@@ -1,0 +1,156 @@
+Intro to Ansible - acg
+
+Ansible:
+- open-source
+- automation, configuration, orchestration of infrastructure
+- infrastructure as code
+- written in python
+- scripting uses YAML
+- code sent via SSH
+- control fleets of servers from a single control server via SSH
+---
+Other Tools Comparable to Ansible
+Ansible               Chef               Puppet              Salt
+-------               ----               ------              ----
+- only install once   per machine        per machine         per machine
+- Push based          Pull               Pull                Pull/Pushed
+- YAML                Ruby               Puppet DSL          YAML
+- Linux/Unix--------------------------------------------------------->
+
+---
+Setup Environment
+
+1. Setup Inventory
+EC2 -> Network & Security -> Key Pair -> Create: kp-ansible-2020
+mv ~/Downloads...-> ~/.ssh    # -move KP to .ssh directory
+chmod 400 ~/.ssh/...
+---
+CloudFormation -> upload yaml template
+---
+2. Install Ansible Local
+brew install ansible
+---
+3. Ensure End-to-End CX
+---
+Setup Inventory File
+- default is INI File
+mkdir ansible2020
+ansible --list-hosts all -> throws error
+ansible -i hosts-dev --list-hosts all -> no error, identifies hosts-dev file
+ansible --list-hosts webservers
+ansible --list-hosts loadbalancers
+ansible --list-hosts "*"
+ansible --list-hosts app*
+ansible --list-hosts webservers:loadbalancers
+ansible --list-hosts \!control       # -omit control
+ansible --list-hosts webservers[0]   # -return first array index value
+
+hosts-dev
+control ansible_connection=local   # -stop ssh into local host
+---
+Ansible Configuration Setup
+# ansible.cfg
+
+[defaults]
+inventory = ./hosts-dev
+---
+Tasks
+- run adhoc commands against inventory as 1-line executable
+      ansible options <host-pattern>
+  ex: ansible -m ping all     -> throws errors. update ansible.cfg
+      ansible -m shell -a "uname" webservers:loadbalancers
+
+# ---Playbooks--- #
+Example:
+# ping.yaml
+---
+  - hosts: all
+    tasks  :
+    - name: Pining all servers
+      action: ping
+
+ansible-playbook ping.yaml   #-executes playbook
+docs.ansible.com
+---
+1. Pkg Mgmt
+2. Configure infrastructure
+3. Service Handlers
+---
+Jinga2 syntax # ---variables
+ - registered variables
+
+ # ---Roles--- #
+ Example:
+  setup-app.yml
+  roles/
+    webservers/
+      tasks/
+        - main.yml
+      vars/
+        - main.yml
+      handlers/
+        - main.yml
+
+ansible-galaxy webservers init # ---create a role
+---
+Check Mode ("Dry Run")
+Example:
+  ansible-playbook setup-app.yml --check
+---
+Error Handling
+Example:
+  # check-status.yml
+  ---
+    - hosts: webservers:loadbalancers
+      tasks:
+      - name: Check status of apache
+        command: service httpd status
+        changed_when: false
+
+      - nmae: This will not fail
+        command: /bin/false
+        ignore_errors: yes
+---
+Tags
+  - only run specific tags, rathr than entire playbook
+Example:
+  # setup-app.yml
+  ---
+    tasks:
+      - name: Upload application file
+        copy:
+          src: ../index.php
+          dest: "{{path_to_app}}"
+          tags: upload
+
+      - name: Create simple info page
+        copy:
+          dest: "{{path_to_app}}/info.php"
+          content: "<h1>Hello World!</h1> "
+        tags: create
+
+ansible-playbook setup-app.yml --tags upload # -only run part of Playbook
+ansible-playbook setup-app.yml --skip upload # -skip this tag
+---
+Ansible Vault # -file encryption
+Example:
+  ansible-vault create secret-variables.yml
+  ansible-playbook setup-app.yml --ask-vault-pass # -prompt for pw
+  ansible-vault create vars/secret-variables.yml # -set file encryption pw
+  ansible-vault edit vars/secret-variables.yml   # -change file pw
+---
+Prompts
+Example:
+    # setup-app.yml
+    ---
+      vars_prompt:
+        - name: "uploar var"
+        prompt: "Upload index.php file?"
+
+      tasks:
+        - name: Upload app File
+        copy:
+          src: ..//index.php
+          dest: "{{path_to_app}}"
+        when: upload_var == 'yes'
+        tags: upload  
